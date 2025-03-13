@@ -11,12 +11,17 @@ def split_and_average_excel(input_file, output_file):
     
     # 分组计算
     result_list = []
+    split_num = 8
     for _, group in df.groupby('ID'):
-        group = group.sample(frac=1).reset_index(drop=True)  # 随机打乱数据
-        splits = np.array_split(group, 8)  # 分成4份
-        averages = pd.DataFrame([split.mean(numeric_only=True) for split in splits])  # 计算每份的均值
-        averages['ID'] = group['ID'].iloc[0]  # 重新添加 ID 列
-        result_list.append(averages)
+        # 如果不足 8 行，直接保留原数据
+        if len(group) < split_num:
+            result_list.append(group)  
+        else:
+            group = group.sample(frac=1).reset_index(drop=True)  # 随机打乱数据
+            splits = np.array_split(group, split_num)  # 分成8份
+            averages = pd.DataFrame([split.mean(numeric_only=True) for split in splits])  # 计算每份的均值
+            averages['ID'] = group['ID'].iloc[0]  # 重新添加 ID 列
+            result_list.append(averages)
     
     # 合并结果并保存
     result_df = pd.concat(result_list, ignore_index=True)
@@ -24,6 +29,6 @@ def split_and_average_excel(input_file, output_file):
     print(f'处理完成，结果保存在 {output_file}')
 
 # 示例调用
-input_excel = "merged_data.xlsx"  # 输入文件
-output_excel = "output_random_group_eight_4.xlsx"  # 输出文件
+input_excel = "merged_data_her2.xlsx"  # 输入文件
+output_excel = "output_random_group_her2_eight.xlsx"  # 输出文件
 split_and_average_excel(input_excel, output_excel)
