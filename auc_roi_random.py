@@ -28,7 +28,8 @@ print(f"df_numeric 共有 {len(df_numeric)} 行")
 
 # 计算 Pearson 相关性
 correlation_matrix = df_numeric.corr(method="pearson")
-correlation_with_pCR = correlation_matrix["pCR"].drop("pCR")
+# 删除 pCR 和 ID 列
+correlation_with_pCR = correlation_matrix["pCR"].drop(["pCR", "ID"])
 
 # 筛选相关性较高的特征（绝对值 > 0.15）
 threshold = 0.0001
