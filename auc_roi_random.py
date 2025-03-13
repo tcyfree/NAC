@@ -6,32 +6,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, roc_curve
+import numpy as np
 
-# 读取 cohort_meta_TNBC.xlsx 文件
-meta_df = pd.read_excel("cohort_meta_TNBC.xlsx")
-
-# 确保 meta_df 的 ID 是字符串类型
-meta_df["ID"] = meta_df["ID"].astype(str)
-
-# 设置 perSlideROISummaries 文件夹路径
-roi_folder = './data/IMPRESS/TNBC/perSlideROISummaries/'
-
-# 获取文件夹中所有的xlsx文件（文件名格式为 病人ID_HE.xlsx）
-file_list = [f for f in os.listdir(roi_folder) if f.endswith('.xlsx')]
-
-# 初始化一个空的 DataFrame 来合并所有病人的数据
-merged_df = pd.DataFrame()
-
-# 遍历文件列表，读取每个病人的数据，并与 meta_df 合并
-for file in file_list:
-    if "_HE.xlsx" in file:  # 确保文件符合格式
-        patient_id = file.replace("_HE.xlsx", "")  # 提取病人ID
-        roi_df = pd.read_excel(os.path.join(roi_folder, file))
-        roi_df['ID'] = str(patient_id)  # 添加病人ID列，并将 ID 转换为字符串类型
-        merged_df = pd.concat([merged_df, roi_df], ignore_index=True)
-
-# 合并临床信息
-df = pd.merge(meta_df, merged_df, on="ID", how="inner")
+# 读取随机分（4份）好的xlsx 文件
+df = pd.read_excel("output_random_group_eight_2.xlsx")
 
 # 获取特征列
 feature_columns = [col for col in df.columns if col not in ["ID", "pCR"]]
@@ -48,23 +26,18 @@ print(f"df_numeric 共有 {len(df_numeric)} 行")
 # df_numeric.to_excel("merged_data.xlsx", index=False)
 # print("合并后的数据已保存到 merged_data.xlsx")
 
-
 # 计算 Pearson 相关性
 correlation_matrix = df_numeric.corr(method="pearson")
 correlation_with_pCR = correlation_matrix["pCR"].drop("pCR")
 
 # 筛选相关性较高的特征（绝对值 > 0.15）
-selected_features = correlation_with_pCR[correlation_with_pCR.abs() > 0.2]
+threshold = 0.0001
+selected_features = correlation_with_pCR[correlation_with_pCR.abs() > threshold]
 selected_features_list = selected_features.index.tolist()
-
-# print(f"Pearson 筛选后剩余的特征数: {len(selected_features_list)}")
-
-# 筛选相关性矩阵，仅保留这些特征
-# filtered_correlation_matrix = correlation_matrix[selected_features_list].loc[selected_features_list]
 
 # 相关性排序
 sorted_selected_features = selected_features.abs().sort_values(ascending=False)
-print(f"Pearson 筛选后剩余的特征数: {len(sorted_selected_features)}")
+print(f"阈值: {threshold}, Pearson 筛选后剩余的特征数: {len(sorted_selected_features)}")
 print(sorted_selected_features)
 
 # 保存筛选后的特征列表
@@ -72,27 +45,7 @@ print(sorted_selected_features)
 
 ### **新增: 预测 pCR 并计算 AUC** ###
 # 提取目标变量和特征
-print('selected_features_list:', selected_features_list)
-X = df_numeric[selected_features_list]
-y = df_numeric["pCR"]
-
-# 检查缺失值
-missing_values = X.isna().sum()
-print(f"缺失值统计：\n{missing_values[missing_values > 0]}")
-
-# 方案 1：删除含有 NaN 的样本
-X = X.dropna()
-y = y.loc[X.index]  # 确保 y 也同步删除对应的行
-
-# 方案 2：填充 NaN（使用列的均值填充）
-# X = X.fillna(X.mean())
-
-# # 数据标准化
-# scaler = StandardScaler()
-# X_scaled = scaler.fit_transform(X)
-
-# # 训练集/测试集拆分
-# X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+# print('selected_features_list:', selected_features_list)
 
 # ===============按照病人拆分=======================
 # 确保ID列是字符串类型
@@ -116,6 +69,17 @@ X_train = train_df[selected_features_list]
 y_train = train_df["pCR"]
 X_test = test_df[selected_features_list]
 y_test = test_df["pCR"]
+
+# 确保只包含数值型数据
+X_train = X_train.apply(pd.to_numeric, errors='coerce')
+X_test = X_test.apply(pd.to_numeric, errors='coerce')
+# 检查是否有无穷值
+if np.isinf(X_train).any().any():
+    print("X_train 存在无穷值")
+if np.isinf(X_test).any().any():
+    print("X_test 存在无穷值")
+X_train.replace([np.inf, -np.inf], np.nan, inplace=True)
+X_test.replace([np.inf, -np.inf], np.nan, inplace=True)
 
 # 数据标准化
 scaler = StandardScaler()

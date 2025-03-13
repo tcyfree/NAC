@@ -8,7 +8,7 @@ from sklearn.metrics import roc_auc_score, roc_curve
 
 # 读取数据
 meta_df = pd.read_excel("cohort_meta_TNBC.xlsx")
-means_df = pd.read_excel("./data/IMPRESS/TNBC/perDatasetSlideSummaries/RoiFeatureSummary_Means.xlsx")
+means_df = pd.read_excel("./data/IMPRESS/TNBC/perDatasetSlideSummaries/GlobalRoiBasedFeatures.xlsx")
 
 # 合并数据
 df = pd.merge(meta_df, means_df, on="ID", how="inner")
@@ -28,7 +28,7 @@ correlation_matrix = df_numeric.corr(method="pearson")
 correlation_with_pCR = correlation_matrix["pCR"].drop("pCR")
 
 # 筛选相关性较高的特征（绝对值 > 0.15）
-selected_features = correlation_with_pCR[correlation_with_pCR.abs() > 0.15]
+selected_features = correlation_with_pCR[correlation_with_pCR.abs() > 0.36]
 selected_features_list = selected_features.index.tolist()
 
 print(f"Pearson 筛选后剩余的特征数: {len(selected_features_list)}")
@@ -37,9 +37,9 @@ print(f"Pearson 筛选后剩余的特征数: {len(selected_features_list)}")
 filtered_correlation_matrix = correlation_matrix[selected_features_list].loc[selected_features_list]
 
 # 相关性热力图
-plt.figure(figsize=(4, 2))
-sns.heatmap(filtered_correlation_matrix, annot=False, fmt=".2f", cmap="coolwarm", cbar=True, square=True, linewidths=0.05)
-plt.title("Filtered Feature Correlation Matrix", fontsize=16)
+# plt.figure(figsize=(4, 2))
+# sns.heatmap(filtered_correlation_matrix, annot=False, fmt=".2f", cmap="coolwarm", cbar=True, square=True, linewidths=0.05)
+# plt.title("Filtered Feature Correlation Matrix", fontsize=16)
 # plt.show()
 
 # 相关性排序
@@ -52,7 +52,7 @@ sorted_selected_features.to_excel("sorted_selected_features.xlsx", sheet_name="C
 
 ### **新增: 预测 pCR 并计算 AUC** ###
 # 提取目标变量和特征
-print('selected_features_list:', selected_features_list)
+# print('selected_features_list:', selected_features_list)
 X = df_numeric[selected_features_list]
 y = df_numeric["pCR"]
 
