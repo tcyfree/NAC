@@ -9,6 +9,10 @@ def split_and_average_excel(input_file, output_file):
     if 'ID' not in df.columns:
         raise ValueError("输入文件必须包含 'ID' 列")
     
+    # 替换 NaN 或 inf 值为 0
+    df.replace([np.inf, -np.inf], 0, inplace=True)  # 替换 inf 和 -inf 为 0
+    df.fillna(0, inplace=True)  # 替换 NaN 为 0
+
     # 分组计算
     result_list = []
     split_num = 8
@@ -29,6 +33,6 @@ def split_and_average_excel(input_file, output_file):
     print(f'处理完成，结果保存在 {output_file}')
 
 # 示例调用
-input_excel = "merged_data_her2.xlsx"  # 输入文件
-output_excel = "output_random_group_her2_eight.xlsx"  # 输出文件
+input_excel = "./data/Post-NAT-BRCA/merged_data_Post_TNBC.xlsx"  # 输入文件
+output_excel = "./data/Post-NAT-BRCA/random_group_eight_Post_TNBC.xlsx"  # 输出文件
 split_and_average_excel(input_excel, output_excel)
