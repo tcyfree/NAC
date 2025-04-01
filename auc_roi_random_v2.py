@@ -107,14 +107,18 @@ feature_names = feature_names[sorted_indices]
 
 # 1. 确保 sorted_selected_features 是 DataFrame
 df_features = sorted_selected_features.reset_index()
-df_features.columns = ['Feature', 'Correlation']  # 重命名列
+df_features.columns = ['Feature', 'Correlation_pCR']  # 重命名列
 
 # 2. 给特征打上 L1_Selected 标记
 df_features['L1_Selected'] = df_features['Feature'].apply(lambda x: "Yes" if x in feature_names else "No")
 
-# 3. 保存结果到 Excel
-output_file = "./data/IMPRESS/sorted_selected_features_TNBC_p_l1.xlsx"
-df_features.to_excel(output_file, sheet_name="Correlation", index=False)
+# 3. 重要性 feature_importance
+importance_dict = dict(zip(feature_names, feature_importance))
+df_features['L1_Coefficient'] = df_features['Feature'].map(importance_dict).fillna(0)  # 不在列表中的特征填充 0
+
+# 4. 保存结果到 Excel
+output_file = "./data/IMPRESS/sorted_selected_features_TNBC_p_l1_imp.xlsx"
+df_features.to_excel(output_file, sheet_name="Correlation_pCR", index=False)
 
 print(f"更新后的特征列表已保存到 {output_file}")
 
