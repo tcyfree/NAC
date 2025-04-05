@@ -15,7 +15,7 @@ from sklearn.model_selection import StratifiedKFold
 
 # 读取数据（请根据实际路径调整文件路径）
 # df = pd.read_excel("./data/IMPRESS/select_p_columns_data_HER2.xlsx")
-df = pd.read_excel("./data/IMPRESS/select_p_columns_data_TNBC_v1.xlsx")
+df = pd.read_excel("./data/IMPRESS/select_p_columns_data_TNBC.xlsx")
 
 # 获取特征列，排除ID和pCR列
 feature_columns = [col for col in df.columns if col not in ["ID", "pCR"]]
@@ -60,6 +60,24 @@ best_fpr = None
 best_tpr = None
 fold_index = 1
 
+# 计算置信区间
+def compute_auc_ci(y_true, y_prob, n_bootstraps=1000, seed=42):
+    rng = np.random.RandomState(seed)
+    bootstrapped_scores = []
+
+    for i in range(n_bootstraps):
+        indices = rng.randint(0, len(y_true), len(y_true))
+        if len(np.unique(y_true[indices])) < 2:
+            continue
+        score = roc_auc_score(y_true[indices], y_prob[indices])
+        bootstrapped_scores.append(score)
+
+    sorted_scores = np.array(bootstrapped_scores)
+    sorted_scores.sort()
+    lower = sorted_scores[int(0.025 * len(sorted_scores))]
+    upper = sorted_scores[int(0.975 * len(sorted_scores))]
+    return roc_auc_score(y_true, y_prob), lower, upper
+
 for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels):
     train_ids = patient_ids[train_patient_idx]
     test_ids = patient_ids[test_patient_idx]
@@ -76,7 +94,8 @@ for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels
     y_pred = model_pipeline.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     y_prob = model_pipeline.predict_proba(X_test)[:, 1]
-    auc = roc_auc_score(y_test, y_prob)
+    auc, lower_ci, upper_ci = compute_auc_ci(y_test.values, y_prob)
+    print(f"Accuracy: {acc:.4f}, AUC: {auc:.4f} (95% CI: {lower_ci:.4f} - {upper_ci:.4f})")
 
     print(f"病人数: 训练 {len(train_ids)}, 测试 {len(test_ids)}")
     print(f"训练ID: {train_ids}")
