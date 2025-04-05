@@ -14,8 +14,8 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.model_selection import StratifiedKFold
 
 # 读取数据（请根据实际路径调整文件路径）
-df = pd.read_excel("./data/IMPRESS/select_p_columns_data_TNBC.xlsx")
-# df = pd.read_excel("./data/IMPRESS/select_p_columns_data_TNBC_v1.xlsx")
+# df = pd.read_excel("./data/IMPRESS/select_p_columns_data_HER2.xlsx")
+df = pd.read_excel("./data/IMPRESS/select_p_columns_data_TNBC_v1.xlsx")
 
 # 获取特征列，排除ID和pCR列
 feature_columns = [col for col in df.columns if col not in ["ID", "pCR"]]
@@ -56,6 +56,8 @@ skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 best_accuracy = -1.0
 best_fold = None
+best_fpr = None
+best_tpr = None
 fold_index = 1
 
 for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels):
@@ -68,6 +70,7 @@ for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels
 
     X_train, X_test = X[train_mask], X[test_mask]
     y_train, y_test = y[train_mask], y[test_mask]
+    print(f"\n第 {fold_index} 折 - X_train： {len(X_train)}, X_test： {len(X_test)}")
 
     model_pipeline.fit(X_train, y_train)
     y_pred = model_pipeline.predict(X_test)
@@ -75,21 +78,22 @@ for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels
     y_prob = model_pipeline.predict_proba(X_test)[:, 1]
     auc = roc_auc_score(y_test, y_prob)
 
-    # # 统计 pCR 分布
-    # pos_count = y_test.sum()
-    # neg_count = len(y_test) - pos_count
-    # print(f"第 {fold_index} 折 - 正类(pCR=1): {pos_count}，负类(pCR=0): {neg_count}")
-
-    print(f"\n第 {fold_index} 折 (病人数: 训练 {len(train_ids)}, 测试 {len(test_ids)})")
-    print(f"Accuracy: {acc:.4f}, AUC: {auc:.4f}")
+    print(f"病人数: 训练 {len(train_ids)}, 测试 {len(test_ids)}")
     print(f"训练ID: {train_ids}")
     print(f"测试ID: {test_ids}")
+    # 统计 pCR 分布
+    pos_count = y_test.sum()
+    neg_count = len(y_test) - pos_count
+    print(f"正类(pCR=1): {pos_count}，负类(pCR=0): {neg_count}")
+    print(f"Accuracy: {acc:.4f}, AUC: {auc:.4f}")
+    
     
     if acc > best_accuracy:
         best_accuracy = acc
         best_fold = fold_index
         best_y_test = y_test
         best_y_prob = y_prob
+        best_fpr, best_tpr, _ = roc_curve(y_test, y_prob)
         best_model = Pipeline([
             ('scaler', StandardScaler()),
             ('logreg', LogisticRegression(penalty="l1", solver="liblinear", C=1.0, random_state=42))
@@ -99,6 +103,16 @@ for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels
     fold_index += 1
 
 print(f"\n最高 Accuracy 出现在第 {best_fold} 折，Accuracy = {best_accuracy:.4f}")
+
+# 绘制最佳折的ROC曲线
+plt.figure(figsize=(8, 6))
+plt.plot(best_fpr, best_tpr, label=f"AUC = {roc_auc_score(best_y_test, best_y_prob):.4f}", color="blue")
+plt.plot([0, 1], [0, 1], linestyle="--", color="gray")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title(f"ROC Curve - Best Fold (Fold {best_fold})")
+plt.legend()
+plt.show()
 
 # # ------------------------------
 # # 保存最佳折模型的权重
