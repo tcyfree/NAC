@@ -16,6 +16,7 @@ from sklearn.model_selection import StratifiedKFold
 # 读取数据（请根据实际路径调整文件路径）
 # df = pd.read_excel("./data/IMPRESS/select_p_columns_data_HER2.xlsx")
 df = pd.read_excel("./data/IMPRESS/select_p_columns_data_TNBC.xlsx")
+# df = pd.read_excel("./data/IMPRESS/select_p_columns_data_TNBC_v1.xlsx")
 
 # 获取特征列，排除ID和pCR列
 feature_columns = [col for col in df.columns if col not in ["ID", "pCR"]]
@@ -51,7 +52,7 @@ patient_df = df.groupby("ID").first().reset_index()
 patient_ids = patient_df["ID"].values
 patient_labels = patient_df["pCR"].values
 
-# 使用 StratifiedKFold 对 病人 和 标签 分层
+# 使用 StratifiedKFold 对 病人 和 标签 分层 (按标签分布（pCR）分层，增强分布均衡性。)
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 best_accuracy = -1.0
@@ -106,7 +107,6 @@ for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels
     print(f"正类(pCR=1): {pos_count}，负类(pCR=0): {neg_count}")
     print(f"Accuracy: {acc:.4f}, AUC: {auc:.4f}")
     
-    
     if acc > best_accuracy:
         best_accuracy = acc
         best_fold = fold_index
@@ -124,14 +124,39 @@ for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels
 print(f"\n最高 Accuracy 出现在第 {best_fold} 折，Accuracy = {best_accuracy:.4f}")
 
 # 绘制最佳折的ROC曲线
-plt.figure(figsize=(8, 6))
-plt.plot(best_fpr, best_tpr, label=f"AUC = {roc_auc_score(best_y_test, best_y_prob):.4f}", color="blue")
+plt.figure(figsize=(6, 6))
+plt.plot(best_fpr, best_tpr, label=f"AUC = {roc_auc_score(best_y_test, best_y_prob):.4f}  | Accuracy = {best_accuracy:.4f}", color="blue")
 plt.plot([0, 1], [0, 1], linestyle="--", color="gray")
 plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
 plt.title(f"ROC Curve - Best Fold (Fold {best_fold})")
 plt.legend()
 plt.show()
+
+# # 可视化最佳模型的特征权重（L1正则后稀疏的系数）
+# logreg_model = best_model.named_steps['logreg']
+# scaler = best_model.named_steps['scaler']
+# coef = logreg_model.coef_.flatten()
+
+# # 只展示非零系数的特征
+# non_zero_mask = coef != 0
+# non_zero_features = np.array(selected_features_list)[non_zero_mask]
+# non_zero_coefs = coef[non_zero_mask]
+
+# # 排序展示
+# # sorted_idx = np.argsort(non_zero_coefs)
+# sorted_idx = np.argsort(np.abs(non_zero_coefs))[::-1]  # 从大到小
+# sorted_features = non_zero_features[sorted_idx]
+# sorted_coefs = non_zero_coefs[sorted_idx]
+
+# plt.figure(figsize=(10, 6))
+# sns.barplot(x=sorted_coefs, y=sorted_features, color='b')
+# plt.title(f"L1 Logistic Regression Coefficients (Fold {best_fold})")
+# plt.xlabel("Coefficient Value")
+# plt.ylabel("Feature")
+# plt.axvline(0, color='black', linestyle='--', linewidth=1)
+# plt.tight_layout()
+# plt.show()
 
 # # ------------------------------
 # # 保存最佳折模型的权重
