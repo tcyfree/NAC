@@ -5,7 +5,7 @@
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/significant_features.py)
 
 ### 2. 📈 相关性筛选  
-在上述基础上，根据与 pCR 的 Pearson 相关性（Pearson > 0.2）进一步筛选出 135 个特征。  
+再根据与 pCR 的 Pearson 相关性（Pearson > 0.2）进一步筛选出 135 个特征。  
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_v2.py)
 
 ---
@@ -21,12 +21,12 @@
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/utils/cluster_main_fac.py)
 
 ### 3. 🔍 预测能力评估  
-使用这些因子的样本得分，评估其对因变量（如 pCR）的预测能力。  
+使用这些因子的样本得分，评估其对因变量（pCR）的预测能力。  
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_fa.py)
 
 ---
 
-## 🧪 三、外部测试
+## 三、外部测试
 
 使用独立测试集进行验证，评估模型泛化能力。  
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_kfold_ex_test.py)
