@@ -60,8 +60,8 @@ print(sorted_selected_features)
 # sorted_selected_features.to_excel("./data/IMPRESS/sorted_selected_features_CRCR_TNBC_p.xlsx", sheet_name="Correlation", header=True)
 
 # 设置增强参数
-n_augments = 2       # 生成几个增强副本
-noise_std = 0.01     # 高斯噪声标准差
+n_augments = 1       # 生成几个增强副本
+noise_std = 0.001     # 高斯噪声标准差
 
 # 原始X和y
 X = df_numeric[selected_features_list]
@@ -93,7 +93,7 @@ def augment_X_y(X, y, ids, n_augments=2, noise_std=0.01):
 # 应用数据增强
 X_aug, y_aug, ids_aug = augment_X_y(X, y, ids, n_augments=n_augments, noise_std=noise_std)
 
-print(f"增强后样本数: {X_aug.shape[0]}, 原始为: {X.shape[0]}")
+print(f"原始样本数为: {X.shape[0]}, 增强后样本数: {X_aug.shape[0]}")
 print(f"增强后ID样本数: {ids_aug.shape[0]}, 标签样本数: {y_aug.shape[0]}")
 
 # 获取增强后病人ID唯一值与标签（用于StratifiedKFold）
@@ -151,6 +151,31 @@ for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels
 
 print(f"\n最高 Accuracy 出现在第 {best_fold} 折，Accuracy = {best_accuracy:.4f}")
 
+# ------------------------------
+# 保存最佳折的ROC曲线数据和性能指标到同一Excel文件中
+# ------------------------------
+# 构造ROC数据的DataFrame
+roc_data = pd.DataFrame({
+    'False Positive Rate': best_fpr,
+    'True Positive Rate': best_tpr
+})
+
+# 构造性能指标的DataFrame（AUC和Accuracy）
+performance_metrics = pd.DataFrame({
+    'Metric': ['Accuracy', 'AUC'],
+    'Value': [best_accuracy, roc_auc_score(best_y_test, best_y_prob)]
+})
+
+# 定义保存的Excel文件路径
+output_file = "./data/IMPRESS/roc_curve_data_best_fold_one_aug_TNBC_v1.xlsx"
+
+# 使用ExcelWriter将数据保存到同一Excel文件的不同sheet中
+with pd.ExcelWriter(output_file) as writer:
+    roc_data.to_excel(writer, sheet_name="ROC Data", index=False)
+    performance_metrics.to_excel(writer, sheet_name="Metrics", index=False)
+
+print(f"最佳折ROC数据和性能指标已保存到 {output_file}")
+
 
 # 绘制最佳折的ROC曲线
 plt.figure(figsize=(6, 6))
@@ -178,7 +203,7 @@ plt.show()
 # sorted_features = non_zero_features[sorted_idx]
 # sorted_coefs = non_zero_coefs[sorted_idx]
 
-# plt.figure(figsize=(10, 6))
+# plt.figure(figsize=(8, 6))
 # sns.barplot(x=sorted_coefs, y=sorted_features, color='b')
 # plt.title(f"L1 Logistic Regression Coefficients (Fold {best_fold})")
 # plt.xlabel("Coefficient Value")
@@ -211,6 +236,6 @@ plt.show()
 # df_weights = pd.concat([df_intercept, df_weights], ignore_index=True)
 
 # # 保存到Excel文件中（路径可根据需要修改）
-# output_file = "./data/IMPRESS/best_fold_weights_StratifiedKFold_TNBC.xlsx"
+# output_file = "./data/IMPRESS/best_fold_weights_StratifiedKFold_one_aug_TNBC_v1.xlsx"
 # df_weights.to_excel(output_file, index=False)
 # print(f"最佳折模型的权重已保存到 {output_file}")
