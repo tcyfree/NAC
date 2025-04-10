@@ -115,6 +115,8 @@ best_fold = None
 best_fpr = None
 best_tpr = None
 fold_index = 1
+best_lower_ci = 0
+best_upper_ci = 0
 
 for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels):
     train_ids = patient_ids[train_patient_idx]
@@ -136,6 +138,8 @@ for train_patient_idx, test_patient_idx in skf.split(patient_ids, patient_labels
     print(f"Accuracy: {acc:.4f}, AUC: {auc:.4f} (95% CI: {lower_ci:.4f} - {upper_ci:.4f})")
 
     if acc > best_accuracy:
+        best_lower_ci = lower_ci
+        best_upper_ci = upper_ci
         best_accuracy = acc
         best_fold = fold_index
         best_y_test = y_test
@@ -160,10 +164,12 @@ roc_data = pd.DataFrame({
     'True Positive Rate': best_tpr
 })
 
+auc_score = roc_auc_score(best_y_test, best_y_prob)
+
 # 构造性能指标的DataFrame（AUC和Accuracy）
 performance_metrics = pd.DataFrame({
-    'Metric': ['Accuracy', 'AUC'],
-    'Value': [best_accuracy, roc_auc_score(best_y_test, best_y_prob)]
+    'Metric': ['Accuracy', 'AUC', 'AUC_CI_Lower', 'AUC_CI_Upper'],
+    'Value': [best_accuracy, auc_score, best_lower_ci, best_upper_ci]
 })
 
 # 定义保存的Excel文件路径
@@ -179,7 +185,7 @@ print(f"最佳折ROC数据和性能指标已保存到 {output_file}")
 
 # 绘制最佳折的ROC曲线
 plt.figure(figsize=(6, 6))
-plt.plot(best_fpr, best_tpr, label=f"AUC = {roc_auc_score(best_y_test, best_y_prob):.4f}  | Accuracy = {best_accuracy:.4f}", color="blue")
+plt.plot(best_fpr, best_tpr, label=f"AUC = {roc_auc_score(best_y_test, best_y_prob):.4f} (95% CI: {best_lower_ci:.4f} - {best_upper_ci:.4f}) \n Accuracy = {best_accuracy:.4f}", color="blue")
 plt.plot([0, 1], [0, 1], linestyle="--", color="gray")
 plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
