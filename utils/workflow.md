@@ -1,8 +1,8 @@
 # 项目概述
 
-本项目主要包括以下几个部分：
+本项目旨在预测TNBC患者对新辅助化疗（NAC）的病理完全缓解（pCR）反应，整体流程包括：
 
-1. **特征提取**：基于两篇相关论文的方法，从WSIs中分割和识别组织区域和细胞核信息，并定量提取基于ROI的Histomic feature。
+1. **特征提取**：基于两篇已有研究，从WSIs中分割组织区域和细胞核，并定量提取基于ROI的histomic特征。
 2. **数据增强**：针对原始样本量较小的问题，采用高斯噪声数据增强方法扩充数据集。
 3. **特征筛选**：通过显著性和相关性分析从859个ROI级别特征中筛选出与pCR显著相关的特征。
 4. **因子分析**：利用因子分析提取具有医学解释性的因子，并评估其对pCR预测的能力。
@@ -12,7 +12,7 @@
 
 # 一、 特征提取
 
-### 1.1 基于论文方法
+### 1.1 基于公开模型
 
 #### 参考论文1  
 > Liu, Shangke, et al. "A panoptic segmentation approach for tumor-infiltrating lymphocyte assessment: development of the MuTILs model and PanopTILs dataset." *MedRxiv* (2022): 2022-01.
@@ -21,31 +21,32 @@
 
 - **代码和模型权重**: https://github.com/PathologyDataScience/MuTILs_Panoptic
 
-使用该论文官方发布的预训练全景分割模型“MuTILs”，对乳腺癌WSIs进行组织区域和细胞核分割。模型结合语义分割（区域）和对象检测（细胞核）两部分，输出WSIs的Region和Nucleus分割及识别结果。
+使用该论文官方发布的预训练全景分割模型“MuTILs”对WSIs进行组织区域（Region）与细胞核（Nucleus）的联合分割，输出全景分割结果，用作后续特征提取的基础。
 
 #### 参考论文2  
 > Amgad M, Rathore MA, et al. A population-level digital histologic biomarker for enhanced prognosis of invasive breast cancer. *Nat Med*. 2024;30(1):85-97.
 
 - **HiPS方法代码**: https://github.com/PathologyDataScience/HiPS
 
-利用MuTILs模型的输出作为HiPS方法的输入，每个WSI提取出859个基于ROI的Histomic定量特征。
+将MuTILs分割结果作为HiPS输入，提取859个ROI级别的histomic定量特征。
 
 ---
 
 # 二、 数据增强
 
-由于原始数据仅有64个样本，为提高模型鲁棒性及扩充训练数据，采用高斯噪声数据增强方法。
+原始数据集来自公开研究（Huang, Zhi, et al. "Artificial intelligence reveals features associated with breast cancer neoadjuvant chemotherapy responses from multi-stain histopathologic images." NPJ Precision Oncology 7.1 (2023): 14.），仅有64个TNBC样本。为缓解样本量不足和提高模型鲁棒性，采用高斯噪声进行特征级别的数据增强。
 
 ### 2.1 方法说明
 
-- **高斯噪声添加**：  
-  在原始特征数据上添加噪声，生成多个增强副本。
+- **增强策略**：  
+  对原始特征添加小幅高斯噪声，生成多个增强副本
   
 - **关键参数**：
   - **n_augments**：控制生成增强副本的数量（例如，本代码中设为1，即生成一个增强副本）。
   - **noise_std**：高斯噪声标准差（例如，本代码中设为0.001，噪声较小，确保数据分布基本不变）。
 
-通过对原始数据集（包含特征、标签及ID）生成多个增强版本，后续用于模型训练和交叉验证。
+- **增强效果**：
+  用于后续模型训练及交叉验证，提升泛化能力。
 
 代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_aug.py
 
@@ -84,13 +85,13 @@
 
 ### 4.2 医学可解释因子识别
 
-- 根据因子载荷阈值，识别出具有医学可解释性的因子。
+- 根据因子载荷阈（factor loading）值，识别出具有医学可解释性的因子。
 
 代码: https://github.com/tcyfree/NAC/blob/main/utils/cluster_main_fac.py
 
 ### 4.3 预测能力评估
 
-- 使用提取因子的样本得分，评估其对因变量（pCR）的预测能力。
+- 使用提取因子的样本得分，评估其对因变量（pCR）的预测能力（如AUC，Accuracy）。
 
 代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_fa.py
 
@@ -98,7 +99,15 @@
 
 # 五、 外部测试
 
-在独立测试集上验证模型的泛化能力。
+在多个独立测试集上验证模型的泛化能力。
+
+### 5.1 数据来源
+
+- **测试集**：来自[TCIA Post-NAC BRCA 数据集](https://www.cancerimagingarchive.net/collection/post-nat-brca)，其中样本均为非pCR患者。
+
+### 5.2 测试策略
+
+- 由于测试集标签单一，结果以**准确率（Accuracy）**为主要评估指标。
 
 代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_kfold_ex_test.py
 
