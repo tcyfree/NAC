@@ -16,14 +16,10 @@ ci_upper = metrics_data.loc[metrics_data['Metric'] == 'AUC_CI_Upper', 'Value'].v
 
 # 绘制ROC曲线
 plt.figure(figsize=(6, 6))
-plt.plot(roc_data['False Positive Rate'], roc_data['True Positive Rate'], label="ROC Curve", color="blue")
+plt.plot(roc_data['False Positive Rate'], roc_data['True Positive Rate'], label=f"AUC = {auc:.4f} (95% CI: {ci_lower:.4f} - {ci_upper:.4f}) \nAccuracy = {acc:.4f}", color="blue")
 plt.plot([0, 1], [0, 1], linestyle="--", color="gray")
 plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
-plt.title("ROC Curve with Metrics")
-
-# 显示AUC和CI
-plt.text(0.45, 0.3,
-         f"AUC = {auc:.4f}\n95% CI ({ci_lower:.4f}, {ci_upper:.4f})\nAccuracy = {acc:.4f}", fontsize=14)
+plt.title(f"ROC Curve - Best Fold")
 plt.legend()
 plt.show()
