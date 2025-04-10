@@ -96,6 +96,18 @@ X_aug, y_aug, ids_aug = augment_X_y(X, y, ids, n_augments=n_augments, noise_std=
 print(f"原始样本数为: {X.shape[0]}, 增强后样本数: {X_aug.shape[0]}")
 print(f"增强后ID样本数: {ids_aug.shape[0]}, 标签样本数: {y_aug.shape[0]}")
 
+# 构建包含增强数据的DataFrame
+df_augmented = X_aug.copy()
+df_augmented['pCR'] = y_aug
+df_augmented['ID'] = ids_aug
+
+# 定义保存的Excel文件路径
+output_file_aug = "./data/IMPRESS/aug/augmented_data_TNBC.xlsx"
+
+# 将增强后的数据保存到Excel文件中
+df_augmented.to_excel(output_file_aug, index=False)
+print(f"增强后的数据已保存到 {output_file_aug}")
+
 # 获取增强后病人ID唯一值与标签（用于StratifiedKFold）
 patient_df_aug = pd.DataFrame({'ID': ids_aug, 'pCR': y_aug}).groupby("ID").first().reset_index()
 patient_ids = patient_df_aug["ID"].values
@@ -185,7 +197,7 @@ print(f"最佳折ROC数据和性能指标已保存到 {output_file}")
 
 # 绘制最佳折的ROC曲线
 plt.figure(figsize=(6, 6))
-plt.plot(best_fpr, best_tpr, label=f"AUC = {roc_auc_score(best_y_test, best_y_prob):.4f} (95% CI: {best_lower_ci:.4f} - {best_upper_ci:.4f}) \n Accuracy = {best_accuracy:.4f}", color="blue")
+plt.plot(best_fpr, best_tpr, label=f"AUC = {roc_auc_score(best_y_test, best_y_prob):.4f} (95% CI: {best_lower_ci:.4f} - {best_upper_ci:.4f}) \nAccuracy = {best_accuracy:.4f}", color="blue")
 plt.plot([0, 1], [0, 1], linestyle="--", color="gray")
 plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
