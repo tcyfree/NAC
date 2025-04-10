@@ -1,72 +1,105 @@
-## 一、数据增强
+# 项目概述
 
-### 1. 🚀 数据增强方法  
-为了增加训练样本数量和模型的鲁棒性，对原始数据进行数据增强。具体方法是在原始特征数据上添加高斯噪声，从而生成多个增强副本。增强过程中两个关键参数为：  
-- **n_augments**：控制生成增强副本的个数（例如，本代码中设为 1，即生成一个增强副本）。  
-- **noise_std**：高斯噪声的标准差（例如，本代码中设为 0.001，噪声较小，确保数据分布基本不变）。  
+本项目主要包括以下几个部分：
 
-主要实现逻辑如下：
+1. **特征提取**：基于两篇相关论文的方法，从乳腺癌WSIs中提取组织区域和细胞核信息，并计算基于ROI的Histomic特征。
+2. **数据增强**：针对原始样本量较小的问题，采用高斯噪声数据增强方法扩充数据集。
+3. **特征筛选**：通过显著性和相关性分析从859个ROI级别特征中筛选出与pCR显著相关的特征。
+4. **因子分析**：利用因子分析提取具有医学解释性的因子，并评估其对pCR预测的能力。
+5. **外部测试**：在独立测试集上验证模型的泛化能力。
 
-```python
-# 设置增强参数
-n_augments = 1       # 生成几个增强副本
-noise_std = 0.001    # 高斯噪声标准差
+---
 
-# 数据增强函数
-def augment_X_y(X, y, ids, n_augments=2, noise_std=0.01):
-    X_list = [X]
-    y_list = [y]
-    id_list = [ids]
+# 一、 特征提取
 
-    for i in range(n_augments):
-        noise = np.random.normal(loc=0, scale=noise_std, size=X.shape)
-        X_aug = X + noise
-        X_list.append(pd.DataFrame(X_aug, columns=X.columns))
-        y_list.append(y.copy())
-        id_list.append(ids.copy())
+### 1.1 基于论文方法
 
-    X_augmented = pd.concat(X_list, ignore_index=True)
-    y_augmented = pd.concat(y_list, ignore_index=True)
-    ids_augmented = pd.concat(id_list, ignore_index=True)
+#### 参考论文1  
+> Liu, Shangke, et al. "A panoptic segmentation approach for tumor-infiltrating lymphocyte assessment: development of the MuTILs model and PanopTILs dataset." *MedRxiv* (2022): 2022-01.
 
-    return X_augmented, y_augmented, ids_augmented
-```
+- **PanopTILs dataset**: https://sites.google.com/view/panoptils/home
 
-通过上述函数，原始数据集（包括特征、标签和ID）生成了多个增强后的版本，并通过 `pd.concat` 将增强数据合并，最终用于后续的模型训练和交叉验证。
+- **代码和模型权重**: https://github.com/PathologyDataScience/MuTILs_Panoptic
+
+使用该论文官方发布的预训练全景分割模型“MuTILs”，对乳腺癌WSIs进行组织区域和细胞核分割。模型结合语义分割（区域）和对象检测（细胞核）两部分，输出WSIs的Region和Nucleus分割及识别结果。
+
+#### 参考论文2  
+> Amgad M, Rathore MA, et al. A population-level digital histologic biomarker for enhanced prognosis of invasive breast cancer. *Nat Med*. 2024;30(1):85-97.
+
+- **HiPS方法代码**: https://github.com/PathologyDataScience/HiPS
+
+利用MuTILs模型的输出作为HiPS方法的输入，每个WSI提取出859个基于ROI的Histomic定量特征。
+
+---
+
+# 二、 数据增强
+
+由于原始数据仅有64个样本，为提高模型鲁棒性及扩充训练数据，采用高斯噪声数据增强方法。
+
+### 2.1 方法说明
+
+- **高斯噪声添加**：  
+  在原始特征数据上添加噪声，生成多个增强副本。
+  
+- **关键参数**：
+  - **n_augments**：控制生成增强副本的数量（例如，本代码中设为1，即生成一个增强副本）。
+  - **noise_std**：高斯噪声标准差（例如，本代码中设为0.001，噪声较小，确保数据分布基本不变）。
+
+通过对原始数据集（包含特征、标签及ID）生成多个增强版本，后续用于模型训练和交叉验证。
 
 🔗 [查看完整代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_aug.py)
 
-## 二、特征筛选
+---
 
-### 1. 🎯 显著性筛选  
-从 859 个 ROI 级别的特征中，筛选出与 pCR 显著相关（p < 0.05）的 496 个特征。  
+# 三、 特征筛选
+
+从859个ROI级特征中，通过两步筛选获得与pCR显著相关的特征。
+
+### 3.1 显著性筛选
+
+- 筛选条件：选择与pCR显著相关（p < 0.05）的特征。
+- 筛选结果：获得496个特征。
+
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/significant_features.py)
 
-### 2. 📈 相关性筛选  
-再根据与 pCR 的 Pearson 相关性（Pearson > 0.2）进一步筛选出 135 个特征。  
+### 3.2 相关性筛选
+
+- 筛选条件：基于与pCR的Pearson相关系数，选择相关性大于0.2的特征。
+- 筛选结果：最终筛选出135个特征。
+
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_v2.py)
 
 ---
 
-## 三、因子分析
+# 四、 因子分析
 
-### 1. 🧮 因子提取  
-使用 `FactorAnalyzer` 进行因子分析，采用最大似然法（ML）并指定斜交旋转（Promax）。  
+基于前述筛选出的特征，进行因子分析以提取具有医学解释性的因子，并评估其预测能力。
+
+### 4.1 因子提取
+
+- 工具：`FactorAnalyzer`
+- 方法：采用最大似然法（ML）并指定斜交旋转（Promax）
+
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/utils/cluster_FA_ml.py)
 
-### 2. 🧑‍⚕️ 医学可解释因子识别  
-基于因子载荷阈值，识别出若干具有医学可解释性的因子。  
+### 4.2 医学可解释因子识别
+
+- 根据因子载荷阈值，识别出具有医学可解释性的因子。
+
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/utils/cluster_main_fac.py)
 
-### 3. 🔍 预测能力评估  
-使用这些因子的样本得分，评估其对因变量（pCR）的预测能力。  
+### 4.3 预测能力评估
+
+- 使用提取因子的样本得分，评估其对因变量（pCR）的预测能力。
+
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_fa.py)
 
 ---
 
-## 四、外部测试
+# 五、 外部测试
 
-使用独立测试集进行验证，评估模型泛化能力。  
+在独立测试集上验证模型的泛化能力。
+
 🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_kfold_ex_test.py)
 
 ---
