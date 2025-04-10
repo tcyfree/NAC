@@ -2,7 +2,7 @@
 
 本项目主要包括以下几个部分：
 
-1. **特征提取**：基于两篇相关论文的方法，从乳腺癌WSIs中提取组织区域和细胞核信息，并计算基于ROI的Histomic特征。
+1. **特征提取**：基于两篇相关论文的方法，从WSIs中分割和识别组织区域和细胞核信息，并定量提取基于ROI的Histomic feature。
 2. **数据增强**：针对原始样本量较小的问题，采用高斯噪声数据增强方法扩充数据集。
 3. **特征筛选**：通过显著性和相关性分析从859个ROI级别特征中筛选出与pCR显著相关的特征。
 4. **因子分析**：利用因子分析提取具有医学解释性的因子，并评估其对pCR预测的能力。
@@ -47,7 +47,7 @@
 
 通过对原始数据集（包含特征、标签及ID）生成多个增强版本，后续用于模型训练和交叉验证。
 
-🔗 [查看完整代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_aug.py)
+代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_aug.py
 
 ---
 
@@ -60,14 +60,14 @@
 - 筛选条件：选择与pCR显著相关（p < 0.05）的特征。
 - 筛选结果：获得496个特征。
 
-🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/significant_features.py)
+代码: https://github.com/tcyfree/NAC/blob/main/significant_features.py
 
 ### 3.2 相关性筛选
 
 - 筛选条件：基于与pCR的Pearson相关系数，选择相关性大于0.2的特征。
 - 筛选结果：最终筛选出135个特征。
 
-🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_v2.py)
+代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_v3.py
 
 ---
 
@@ -80,19 +80,19 @@
 - 工具：`FactorAnalyzer`
 - 方法：采用最大似然法（ML）并指定斜交旋转（Promax）
 
-🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/utils/cluster_FA_ml.py)
+代码: https://github.com/tcyfree/NAC/blob/main/utils/cluster_FA_ml.py
 
 ### 4.2 医学可解释因子识别
 
 - 根据因子载荷阈值，识别出具有医学可解释性的因子。
 
-🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/utils/cluster_main_fac.py)
+代码: https://github.com/tcyfree/NAC/blob/main/utils/cluster_main_fac.py
 
 ### 4.3 预测能力评估
 
 - 使用提取因子的样本得分，评估其对因变量（pCR）的预测能力。
 
-🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_fa.py)
+代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_fa.py
 
 ---
 
@@ -100,6 +100,6 @@
 
 在独立测试集上验证模型的泛化能力。
 
-🔗 [查看代码](https://github.com/tcyfree/NAC/blob/main/auc_roi_kfold_ex_test.py)
+代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_kfold_ex_test.py
 
 ---
