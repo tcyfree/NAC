@@ -21,7 +21,7 @@
 
 - **代码和模型权重**: https://github.com/PathologyDataScience/MuTILs_Panoptic
 
-使用该论文官方发布的预训练全景分割模型“MuTILs”对WSIs进行组织区域（Region）与细胞核（Nucleus）的联合分割，输出全景分割结果，用作后续特征提取的基础。
+使用该论文官方发布的预训练全景分割模型“MuTILs”对WSI进行Region与Nucleus的联合分割，输出全景分割结果，用作后续特征提取的基础。
 
 #### 参考论文2  
 > Amgad M, Rathore MA, et al. A population-level digital histologic biomarker for enhanced prognosis of invasive breast cancer. *Nat Med*. 2024;30(1):85-97.
@@ -66,7 +66,7 @@
 ### 3.2 相关性筛选
 
 - 筛选条件：基于与pCR的Pearson相关系数，选择相关性大于0.2的特征。
-- 筛选结果：最终筛选出135个特征。
+- 筛选结果：最终筛选出135个特征用于后续分析。
 
 代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_random_kfold_v3.py
 
@@ -85,7 +85,7 @@
 
 ### 4.2 医学可解释因子识别
 
-- 根据因子载荷阈（factor loading）值，识别出具有医学可解释性的因子。
+- 根据因子载荷阈（factor loading）值，识别出具有医学可解释性的因子，并尝试给出解释性命名。
 
 代码: https://github.com/tcyfree/NAC/blob/main/utils/cluster_main_fac.py
 
