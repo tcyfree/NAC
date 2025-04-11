@@ -1,5 +1,5 @@
 ### **拟题：**  
-**Development and Validation of Explainable Histomic Factors Derived From Tumor Microenvironment to Predict Pathologic Complete Response in Breast Cancer**
+**Development and Validation of Interpretable Histopathologic Factor Analysis Derived From Tumor Microenvironment to Predict Pathologic Complete Response in Triple-Negative Breast Cancer**
 
 ---
 
@@ -119,4 +119,4 @@ TNBC患者对新辅助化疗（NAC）的病理完全缓解（pCR）预后意义�
 
 ---
 
-通过上述论文构思，重点突出了因子分析在整合TME众多特征、提取具备医学解释性的因子，并有效预测TNBC患者pCR中的关键作用，符合JAMA Network Open的论文风格和要求。
+通过上述论文构思，重点突出了因子分析在整合TME众多特征、提取具备医学解释性的因子，并有效预测TNBC患者pCR中的关键作用。
