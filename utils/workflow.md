@@ -107,7 +107,7 @@
 
 ### 5.2 测试策略
 
-- 由于测试集标签单一，结果以**准确率（Accuracy）**为主要评估指标。
+- 由于测试集标签单一，结果以**Accuracy**为主要评估指标。
 
 代码: https://github.com/tcyfree/NAC/blob/main/auc_roi_kfold_ex_test.py
 
