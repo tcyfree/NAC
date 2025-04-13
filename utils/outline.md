@@ -1,5 +1,5 @@
 ### **拟题：**  
-**Development and Validation of Interpretable Histopathologic Factor Analysis Derived From Tumor Microenvironment to Predict Pathologic Complete Response in Triple-Negative Breast Cancer**
+**Tumor Microenvironment-driven Interpretable Histopathologic Factors for Predicting Pathologic Complete Response in Triple-Negative Breast Cancer**
 
 ---
 
