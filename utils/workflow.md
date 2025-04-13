@@ -34,7 +34,7 @@
 
 # 二、 数据增强
 
-原始数据集来自公开研究（Huang, Zhi, et al. "Artificial intelligence reveals features associated with breast cancer neoadjuvant chemotherapy responses from multi-stain histopathologic images." NPJ Precision Oncology 7.1 (2023): 14.），**仅有64个TNBC样本**。为缓解样本量不足和提高模型鲁棒性，采用高斯噪声进行特征级别的数据增强。
+原始数据集来自公开研究（Huang, Zhi, et al. "Artificial intelligence reveals features associated with breast cancer neoadjuvant chemotherapy responses from multi-stain histopathologic images." NPJ Precision Oncology 7.1 (2023): 14.），仅有64个TNBC样本。为缓解样本量不足和提高模型鲁棒性，采用高斯噪声进行特征级别的数据增强。
 
 ### 2.1 方法说明
 
