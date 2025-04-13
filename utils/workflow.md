@@ -34,7 +34,7 @@
 
 # 二、 数据增强
 
-原始数据集来自公开研究（Huang, Zhi, et al. "Artificial intelligence reveals features associated with breast cancer neoadjuvant chemotherapy responses from multi-stain histopathologic images." NPJ Precision Oncology 7.1 (2023): 14.），仅有64个TNBC样本。为缓解样本量不足和提高模型鲁棒性，采用高斯噪声进行特征级别的数据增强。
+原始数据集来自公开研究（Huang, Zhi, et al. "Artificial intelligence reveals features associated with breast cancer neoadjuvant chemotherapy responses from multi-stain histopathologic images." NPJ Precision Oncology 7.1 (2023): 14.），**仅有64个TNBC样本**。为缓解样本量不足和提高模型鲁棒性，采用高斯噪声进行特征级别的数据增强。
 
 ### 2.1 方法说明
 
@@ -43,7 +43,7 @@
   
 - **关键参数**：
   - **n_augments**：控制生成增强副本的数量（例如，本代码中设为1，即生成一个增强副本）。
-  - **noise_std**：高斯噪声标准差（例如，本代码中设为0.001，噪声较小，确保数据分布基本不变）。
+  - **noise_std**：高斯噪声标准差（例如，本代码中设为0.01，噪声较小，确保数据分布基本不变）。
 
 - **增强效果**：
   统计显著性成立：p < 0.05，说明在 95% 的置信水平下，增强数据带来了显著的性能提升，可以认为数据增强确实改善了模型的泛化能力。
