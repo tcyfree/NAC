@@ -46,6 +46,9 @@ sorted_selected_features = selected_features.sort_values(ascending=False)
 print(f"阈值: {threshold}, 特征数: {len(sorted_selected_features)}")
 print(sorted_selected_features)
 
+# 保存筛选后的特征列表
+sorted_selected_features.to_excel("./data/IMPRESS/aug/sorted_selected_features_aug_p_TNBC.xlsx", sheet_name="Correlation", header=True)
+
 # 设置高斯噪声数据增强参数
 n_augments = 1       # 生成增强副本数
 noise_std = 0.01    # 高斯噪声标准差
@@ -82,7 +85,7 @@ print(f"原始样本数为: {X.shape[0]}, 增强后样本数: {X_aug.shape[0]}")
 df_augmented = X_aug.copy()
 df_augmented['pCR'] = y_aug
 df_augmented['ID'] = ids_aug
-output_file_aug = "./data/IMPRESS/aug/augmented_data_TNBC.xlsx"
+output_file_aug = "./data/IMPRESS/aug/augmented_data_p_TNBC.xlsx"
 df_augmented.to_excel(output_file_aug, index=False)
 print(f"增强后的数据已保存到 {output_file_aug}")
 
@@ -152,6 +155,16 @@ t_stat, p_value = ttest_rel(auc_list_aug, auc_list_orig)
 print("\n--- 交叉验证AUC对比结果 ---")
 print(f"原始数据 AUC: {auc_list_orig}")
 print(f"增强数据 AUC: {auc_list_aug}")
+# 计算平均 AUC 和标准差
+mean_auc_orig = np.mean(auc_list_orig)
+std_auc_orig = np.std(auc_list_orig)
+mean_auc_aug = np.mean(auc_list_aug)
+std_auc_aug = np.std(auc_list_aug)
+
+print("\n--- 平均 AUC 对比 ---")
+print(f"原始数据平均 AUC: {mean_auc_orig:.4f} ± {std_auc_orig:.4f}")
+print(f"增强数据平均 AUC: {mean_auc_aug:.4f} ± {std_auc_aug:.4f}")
+
 print(f"t检验统计量 = {t_stat:.4f}, p值 = {p_value:.4f}")
 
 # 判断p值
