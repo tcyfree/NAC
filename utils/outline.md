@@ -43,11 +43,11 @@ TNBC患者对新辅助化疗（NAC）的病理完全缓解（pCR）预后意义�
 ### 数据来源与预处理
 
 - **样本描述：**  
-  - 内部数据集：来自64例TNBC患者的WSI图像，数据来源于公开研究（例如Huang等，NPJ Precision Oncology 2023）。
+  - 内部数据集：来自64例TNBC患者的WSI图像，数据来源于公开研究（参见Huang等，NPJ Precision Oncology 2023）。
   - 外部数据集：TCIA Post-NAC BRCA数据集，主要包含NAC后未达到pCR的患者信息，以验证模型泛化性。
 
 - **图像预处理与分割：**  
-  利用公开发布的分割模型（如Liu等，MedRxiv 2022）对WSI进行区域与细胞核分割，后续依据HiPS方案提取859个TME特征（参见Amgad等，Nat Med 2024）。
+  利用公开发布的分割模型（参见Liu等，MedRxiv 2022）对WSI进行区域与细胞核分割，后续依据HiPS方案提取859个TME特征（参见Amgad等，Nat Med 2024）。
 
 ### 数据增强
 
