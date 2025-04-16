@@ -2,13 +2,14 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
+from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score, f1_score, precision_score, recall_score, confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
 # ------------------------------
 # 1. 加载模型权重
 # ------------------------------
-weights_file = "./data/IMPRESS/best_fold_weights_StratifiedKFold_TNBC.xlsx"
+# weights_file = "./data/IMPRESS/best_fold_weights_StratifiedKFold_TNBC.xlsx"
+weights_file = "./data/IMPRESS/best_fold_weights_StratifiedKFold_FA_pearson_auc_6_aug_TNBC.xlsx"
 df_weights = pd.read_excel(weights_file)
 print("加载的权重模型：")
 print(df_weights)
@@ -21,7 +22,8 @@ coef_dict = df_weights[df_weights["Feature"] != "Intercept"].set_index("Feature"
 # ------------------------------
 # 2. 加载并预处理外部测试集
 # ------------------------------
-external_file = "./data/Post-NAT-BRCA/random_group_eight_Post_TNBC_v1.1.xlsx"  # 根据实际情况调整路径
+# external_file = "./data/Post-NAT-BRCA/random_group_eight_Post_TNBC_v1.1.xlsx"  # 根据实际情况调整路径
+external_file = "./data/IMPRESS/cluster/cluster_factors_pearson_new_6.xlsx"  # 根据实际情况调整路径
 df_external = pd.read_excel(external_file)
 
 # 假设外部测试集中包含相同的特征和目标变量（pCR）
@@ -63,7 +65,28 @@ y_pred = (y_prob >= 0.5).astype(int)
 # ------------------------------
 accuracy = accuracy_score(y_external, y_pred)
 auc = roc_auc_score(y_external, y_prob)
-print(f"外部测试集 Accuracy: {accuracy:.4f}, AUC: {auc:.4f}")
+f1 = f1_score(y_external, y_pred)
+precision = precision_score(y_external, y_pred)
+recall = recall_score(y_external, y_pred)  # Recall 同时作为 Sensitivity
+
+# 计算混淆矩阵
+cm = confusion_matrix(y_external, y_pred)
+# 混淆矩阵格式: [[TN, FP],
+#               [FN, TP]]
+TN, FP, FN, TP = cm[0, 0], cm[0, 1], cm[1, 0], cm[1, 1]
+# NPV = TN/(TN+FN)，Specificity = TN/(TN+FP)
+npv = TN / (TN + FN) if (TN + FN) > 0 else np.nan
+specificity = TN / (TN + FP) if (TN + FP) > 0 else np.nan
+
+# 打印各项指标
+print("外部测试集指标：")
+print(f"Accuracy: {accuracy:.4f}")
+print(f"AUC: {auc:.4f}")
+print(f"F1 Score: {f1:.4f}")
+print(f"Precision (PPV): {precision:.4f}")
+print(f"Recall (Sensitivity): {recall:.4f}")
+print(f"NPV: {npv:.4f}")
+print(f"Specificity: {specificity:.4f}")
 
 # # 绘制 ROC 曲线
 # fpr, tpr, thresholds = roc_curve(y_external, y_prob)
